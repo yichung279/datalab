@@ -1,3 +1,4 @@
+#include <stdio.h>
 /*
  * Modified CS:APP Data Lab
  *
@@ -125,7 +126,11 @@ int absVal(int x)
  */
 int addOK(int x, int y)
 {
-    return 42;
+    int sum = x + y;
+    int signX = x >> 31;
+    int signY = y >> 31;
+    int signSum = sum >> 31;
+    return (signX | signY | !signSum) & (!signX | !signY | signSum) & 1;
 }
 
 /*
