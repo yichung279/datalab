@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 /*
  * Modified CS:APP Data Lab
  *
@@ -130,7 +131,7 @@ int addOK(int x, int y)
     uint32_t signX = x >> 31;
     uint32_t signY = y >> 31;
     uint32_t signSum = sum >> 31;
-    return (signX | signY | !signSum) & (!signX | !signY | signSum) & 1;
+    return (signX | signY | !signSum) & (!signX | !signY | signSum) && 1;
 }
 
 /*
@@ -145,7 +146,7 @@ int allEvenBits(int x)
 {
     x = x | 0xaaaaaaaa;
     x = !(x ^ 0xffffffff);
-    return x & 1;
+    return x && 1;
 }
 
 /*
@@ -160,7 +161,7 @@ int allOddBits(int x)
 {
     x = x | 0x55555555;
     x = !(x ^ 0xffffffff);
-    return x & 1;
+    return x && 1;
 }
 
 /*
