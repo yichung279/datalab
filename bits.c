@@ -233,7 +233,26 @@ int bitAnd(int x, int y)
  */
 int bitCount(int x)
 {
-    return 42;
+    int b = x & 0x55555555;
+    int c = (x >> 1) & 0x55555555;
+    x = b + c;
+
+    b = x & 0x33333333;
+    c = (x >> 2) & 0x33333333;
+    x = b + c;
+
+    b = x & 0x0f0f0f0f;
+    c = (x >> 4) & 0x0f0f0f0f;
+    x = b + c;
+
+    b = x & 0x00ff00ff;
+    c = (x >> 8) & 0x00ff00ff;
+    x = b + c;
+
+    b = x & 0x0000ffff;
+    c = (x >> 16) & 0x0000ffff;
+    x = b + c;
+    return x;
 }
 
 /*
@@ -261,7 +280,7 @@ int bitMask(int highbit, int lowbit)
  */
 int bitMatch(int x, int y)
 {
-    return 42;
+    return x & y;
 }
 
 /*
