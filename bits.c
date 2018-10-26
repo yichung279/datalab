@@ -113,7 +113,7 @@ NOTES:
  */
 int absVal(int x)
 {
-    uint32_t y = x >> 31;
+    int y = x >> 31;
     return (x ^ y) + (~y + 1);
 }
 
@@ -128,10 +128,10 @@ int absVal(int x)
 int addOK(int x, int y)
 {
     int sum = x + y;
-    uint32_t signX = x >> 31;
-    uint32_t signY = y >> 31;
-    uint32_t signSum = sum >> 31;
-    return (signX | signY | !signSum) & (!signX | !signY | signSum) && 1;
+    int signX = x >> 31;
+    int signY = y >> 31;
+    int signSum = sum >> 31;
+    return (signX | signY | !signSum) & (!signX | !signY | signSum) & 1;
 }
 
 /*
@@ -146,7 +146,7 @@ int allEvenBits(int x)
 {
     x = x | 0xaaaaaaaa;
     x = !(x ^ 0xffffffff);
-    return x && 1;
+    return x & 1;
 }
 
 /*
@@ -161,7 +161,7 @@ int allOddBits(int x)
 {
     x = x | 0x55555555;
     x = !(x ^ 0xffffffff);
-    return x && 1;
+    return x & 1;
 }
 
 /*
@@ -174,7 +174,9 @@ int allOddBits(int x)
  */
 int anyEvenBit(int x)
 {
-    return 42;
+    x = x & 0x55555555;
+    x = !!(x ^ 0x00000000);
+    return x & 1;
 }
 
 /*
@@ -187,7 +189,9 @@ int anyEvenBit(int x)
  */
 int anyOddBit(int x)
 {
-    return 42;
+    x = x & 0xaaaaaaaa;
+    x = !!(x ^ 0x00000000);
+    return x & 1;
 }
 
 /*
@@ -199,7 +203,13 @@ int anyOddBit(int x)
  */
 int bang(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x | (x >> 1);
+    x = ~x;
+    return x & 1;
 }
 
 /*
@@ -211,7 +221,7 @@ int bang(int x)
  */
 int bitAnd(int x, int y)
 {
-    return 42;
+    return ~(~x | ~y);
 }
 
 /*
