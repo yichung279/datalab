@@ -144,8 +144,12 @@ int addOK(int x, int y)
  */
 int allEvenBits(int x)
 {
-    x = x | 0xaaaaaaaa;
-    x = !(x ^ 0xffffffff);
+    int mask = 0xaa;
+    mask |= (mask << 16);
+    mask |= (mask << 8);
+
+    x = x | mask;
+    x = !(x ^ ~0);
     return x & 1;
 }
 
@@ -159,8 +163,12 @@ int allEvenBits(int x)
  */
 int allOddBits(int x)
 {
-    x = x | 0x55555555;
-    x = !(x ^ 0xffffffff);
+    int mask = 0x55;
+    mask |= (mask << 16);
+    mask |= (mask << 8);
+
+    x = x | mask;
+    x = !(x ^ ~0);
     return x & 1;
 }
 
@@ -174,8 +182,12 @@ int allOddBits(int x)
  */
 int anyEvenBit(int x)
 {
-    x = x & 0x55555555;
-    x = !!(x ^ 0x00000000);
+    int mask = 0x55;
+    mask |= (mask << 16);
+    mask |= (mask << 8);
+
+    x = x & mask;
+    x = !!(x ^ 0);
     return x & 1;
 }
 
@@ -189,8 +201,12 @@ int anyEvenBit(int x)
  */
 int anyOddBit(int x)
 {
-    x = x & 0xaaaaaaaa;
-    x = !!(x ^ 0x00000000);
+    int mask = 0xaa;
+    mask |= (mask << 16);
+    mask |= (mask << 8);
+
+    x = x & mask;
+    x = !!(x ^ 0);
     return x & 1;
 }
 
@@ -233,24 +249,42 @@ int bitAnd(int x, int y)
  */
 int bitCount(int x)
 {
-    int b = x & 0x55555555;
-    int c = (x >> 1) & 0x55555555;
+    int mask1 = 0x55;
+    mask1 |= (mask1 << 16);
+    mask1 |= (mask1 << 8);  // 0x55555555
+
+    int mask2 = 0x33;
+    mask2 |= (mask2 << 16);
+    mask2 |= (mask2 << 8);  // 0x333333333
+
+    int mask3 = 0x0f;
+    mask3 |= (mask3 << 16);
+    mask3 |= (mask3 << 8);  // 0x0f0f0f0f
+
+    int mask4 = 0xff;
+    mask4 |= (mask4 << 16);  // 0x00ff00ff
+
+    int mask5 = 0xff;
+    mask5 |= (mask5 << 8);  // 0x0000ffff
+
+    int b = x & mask1;
+    int c = (x >> 1) & mask1;
     x = b + c;
 
-    b = x & 0x33333333;
-    c = (x >> 2) & 0x33333333;
+    b = x & mask2;
+    c = (x >> 2) & mask2;
     x = b + c;
 
-    b = x & 0x0f0f0f0f;
-    c = (x >> 4) & 0x0f0f0f0f;
+    b = x & mask3;
+    c = (x >> 4) & mask3;
     x = b + c;
 
-    b = x & 0x00ff00ff;
-    c = (x >> 8) & 0x00ff00ff;
+    b = x & mask4;
+    c = (x >> 8) & mask4;
     x = b + c;
 
-    b = x & 0x0000ffff;
-    c = (x >> 16) & 0x0000ffff;
+    b = x & mask5;
+    c = (x >> 16) & mask5;
     x = b + c;
     return x;
 }
@@ -269,8 +303,8 @@ int bitMask(int highbit, int lowbit)
 {
     int h = highbit;
     int l = 32 + ~lowbit;
-    int h_mask = ~(0xfffffffe << h);
-    int l_mask = (int) 0x80000000 >> l;
+    int h_mask = ~(~1 << h);
+    int l_mask = (0x1 << 31) >> l;
     return l_mask & h_mask;
 }
 
@@ -339,12 +373,29 @@ int bitParity(int x)
  */
 int bitReverse(int x)
 {
-    /* ref: Jserv's note  https://hackmd.io/s/ByzoiggIb */
-    x = ((x & 0xffff0000) >> 16) | ((x & 0x0000ffff) << 16);
-    x = ((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8);
-    x = ((x & 0xf0f0f0f0) >> 4) | ((x & 0x0f0f0f0f) << 4);
-    x = ((x & 0xcccccccc) >> 2) | ((x & 0x33333333) << 2);
-    x = ((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1);
+    int mask1 = 0x55;
+    mask1 |= (mask1 << 16);
+    mask1 |= (mask1 << 8);  // 0x55555555
+
+    int mask2 = 0x33;
+    mask2 |= (mask2 << 16);
+    mask2 |= (mask2 << 8);  // 0x333333333
+
+    int mask3 = 0x0f;
+    mask3 |= (mask3 << 16);
+    mask3 |= (mask3 << 8);  // 0x0f0f0f0f
+
+    int mask4 = 0xff;
+    mask4 |= (mask4 << 16);  // 0x00ff00ff
+
+    int mask5 = 0xff;
+    mask5 |= (mask5 << 8);  // 0x0000ffff
+
+    x = (((x & ~mask5) >> 16) & mask5) | ((x & mask5) << 16);
+    x = (((x & ~mask4) >> 8) & mask4) | ((x & mask4) << 8);
+    x = (((x & ~mask3) >> 4) & mask3) | ((x & mask3) << 4);
+    x = (((x & ~mask2) >> 2) & mask2) | ((x & mask2) << 2);
+    x = (((x & ~mask1) >> 1) & mask1) | ((x & mask1) << 1);
     return x;
 }
 
@@ -373,8 +424,8 @@ int bitXor(int x, int y)
 int byteSwap(int x, int n, int m)
 {
     // get n_byte and m_byte
-    int n_mask = (int) 0x000000ff << (n << 3);
-    int m_mask = (int) 0x000000ff << (m << 3);
+    int n_mask = 0xff << (n << 3);
+    int m_mask = 0xff << (m << 3);
 
     int n_byte = x & n_mask;
     int m_byte = x & m_mask;
@@ -426,25 +477,43 @@ int countLeadingZero(int x)
     x = x | (x >> 2);
     x = x | (x >> 1);
     x = ~x;
+    int mask1 = 0x55;
 
-    int b = x & 0x55555555;
-    int c = (x >> 1) & 0x55555555;
+    mask1 |= (mask1 << 16);
+    mask1 |= (mask1 << 8);  // 0x55555555
+
+    int mask2 = 0x33;
+    mask2 |= (mask2 << 16);
+    mask2 |= (mask2 << 8);  // 0x333333333
+
+    int mask3 = 0x0f;
+    mask3 |= (mask3 << 16);
+    mask3 |= (mask3 << 8);  // 0x0f0f0f0f
+
+    int mask4 = 0xff;
+    mask4 |= (mask4 << 16);  // 0x00ff00ff
+
+    int mask5 = 0xff;
+    mask5 |= (mask5 << 8);  // 0x0000ffff
+
+    int b = x & mask1;
+    int c = (x >> 1) & mask1;
     x = b + c;
 
-    b = x & 0x33333333;
-    c = (x >> 2) & 0x33333333;
+    b = x & mask2;
+    c = (x >> 2) & mask2;
     x = b + c;
 
-    b = x & 0x0f0f0f0f;
-    c = (x >> 4) & 0x0f0f0f0f;
+    b = x & mask3;
+    c = (x >> 4) & mask3;
     x = b + c;
 
-    b = x & 0x00ff00ff;
-    c = (x >> 8) & 0x00ff00ff;
+    b = x & mask4;
+    c = (x >> 8) & mask4;
     x = b + c;
 
-    b = x & 0x0000ffff;
-    c = (x >> 16) & 0x0000ffff;
+    b = x & mask5;
+    c = (x >> 16) & mask5;
     x = b + c;
 
     return x;
@@ -487,7 +556,7 @@ int distinctNegation(int x)
 int dividePower2(int x, int n)
 {
     int neg = x >> 31;
-    int mask = ~(0xffffffff << n);
+    int mask = ~(~0 << n);
     int divisible = !(x & mask);
 
     return (x >> n) + (neg & ~divisible & 1);
@@ -501,7 +570,10 @@ int dividePower2(int x, int n)
  */
 int evenBits(void)
 {
-    return 0x55555555;
+    int word = 0x55;
+    word |= (word << 16);
+    word |= (word << 8);
+    return word;
 }
 
 /*
@@ -519,7 +591,7 @@ int ezThreeFourths(int x)
 {
     int x3 = x + x + x;
     int neg = x3 >> 31;
-    int divisible = !(x3 & 0x00000003);
+    int divisible = !(x3 & 0x3);
 
     return (x3 >> 2) + (neg & ~divisible & 1);
 }
@@ -568,11 +640,15 @@ int fitsShort(int x)
  */
 unsigned floatAbsVal(unsigned uf)
 {
-    int special_exp = !(~(uf | 0x807fffff));
-    int frac = uf & 0x007fffff;
+    int mask_exp = 0x807fffff;
+    int mask_sign = 0x7fffffff;
+    int mask_frac = 0x007fffff;
+
+    int special_exp = !(~(uf | mask_exp));
+    int frac = uf & mask_frac;
     if (special_exp && frac)
         return uf;
-    return uf & 0x7fffffff;
+    return uf & mask_sign;
 }
 
 /*
