@@ -269,7 +269,7 @@ int bitMask(int highbit, int lowbit)
 {
     int h = highbit;
     int l = 32 + ~lowbit;
-    int h_mask = ~((int) 0xfffffffe << h);
+    int h_mask = ~(0xfffffffe << h);
     int l_mask = (int) 0x80000000 >> l;
     return l_mask & h_mask;
 }
@@ -568,7 +568,11 @@ int fitsShort(int x)
  */
 unsigned floatAbsVal(unsigned uf)
 {
-    return 42;
+    int special_exp = !(~(uf | 0x807fffff));
+    int frac = uf & 0x007fffff;
+    if (special_exp && frac)
+        return uf;
+    return uf & 0x7fffffff;
 }
 
 /*
