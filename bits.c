@@ -267,7 +267,11 @@ int bitCount(int x)
  */
 int bitMask(int highbit, int lowbit)
 {
-    return 42;
+    int h = highbit;
+    int l = 32 + ~lowbit;
+    int h_mask = ~((int) 0xfffffffe << h);
+    int l_mask = (int) 0x80000000 >> l;
+    return l_mask & h_mask;
 }
 
 /*
@@ -280,7 +284,7 @@ int bitMask(int highbit, int lowbit)
  */
 int bitMatch(int x, int y)
 {
-    return x & y;
+    return ~(~(~x & ~y) & ~(x & y));
 }
 
 /*
@@ -292,7 +296,7 @@ int bitMatch(int x, int y)
  */
 int bitNor(int x, int y)
 {
-    return 42;
+    return ~x & ~y;
 }
 
 /*
@@ -304,7 +308,7 @@ int bitNor(int x, int y)
  */
 int bitOr(int x, int y)
 {
-    return 42;
+    return ~(~x & ~y);
 }
 
 /*
@@ -316,8 +320,14 @@ int bitOr(int x, int y)
  */
 int bitParity(int x)
 {
-    return 42;
+    x ^= (x >> 16);
+    x ^= (x >> 8);
+    x ^= (x >> 4);
+    x ^= (x >> 2);
+    x ^= (x >> 1);
+    return x & 1;
 }
+
 
 /*
  * bitReverse - Reverse bits in a 32-bit word
@@ -329,8 +339,15 @@ int bitParity(int x)
  */
 int bitReverse(int x)
 {
-    return 42;
+    /* ref: Jserv's note  https://hackmd.io/s/ByzoiggIb */
+    x = ((x & 0xffff0000) >> 16) | ((x & 0x0000ffff) << 16);
+    x = ((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8);
+    x = ((x & 0xf0f0f0f0) >> 4) | ((x & 0x0f0f0f0f) << 4);
+    x = ((x & 0xcccccccc) >> 2) | ((x & 0x33333333) << 2);
+    x = ((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1);
+    return x;
 }
+
 
 /*
  * bitXor - x^y using only ~ and &
@@ -341,7 +358,7 @@ int bitReverse(int x)
  */
 int bitXor(int x, int y)
 {
-    return 42;
+    return ~(~x & ~y) & ~(x & y);
 }
 
 /*
@@ -355,7 +372,26 @@ int bitXor(int x, int y)
  */
 int byteSwap(int x, int n, int m)
 {
-    return 42;
+    // get n_byte and m_byte
+    int n_mask = (int) 0x000000ff << (n << 3);
+    int m_mask = (int) 0x000000ff << (m << 3);
+
+    int n_byte = x & n_mask;
+    int m_byte = x & m_mask;
+
+    // swap n_byte m_byte
+    m_byte = m_byte >> (m << 3) << (n << 3);
+    n_byte = n_byte >> (n << 3) << (m << 3);
+
+    // be awre of sign extension
+    m_byte &= n_mask;
+    n_byte &= m_mask;
+
+    // set x n_byte and m_byte 0
+    x &= ~n_mask;
+    x &= ~m_mask;
+
+    return x | m_byte | n_byte;
 }
 
 /*
@@ -367,7 +403,10 @@ int byteSwap(int x, int n, int m)
  */
 int conditional(int x, int y, int z)
 {
-    return 42;
+    x = !!x;
+    x = (x << 31) >> 31;
+
+    return (x & y) | (~x & z);
 }
 
 /*
@@ -381,7 +420,34 @@ int conditional(int x, int y, int z)
  */
 int countLeadingZero(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x | (x >> 1);
+    x = ~x;
+
+    int b = x & 0x55555555;
+    int c = (x >> 1) & 0x55555555;
+    x = b + c;
+
+    b = x & 0x33333333;
+    c = (x >> 2) & 0x33333333;
+    x = b + c;
+
+    b = x & 0x0f0f0f0f;
+    c = (x >> 4) & 0x0f0f0f0f;
+    x = b + c;
+
+    b = x & 0x00ff00ff;
+    c = (x >> 8) & 0x00ff00ff;
+    x = b + c;
+
+    b = x & 0x0000ffff;
+    c = (x >> 16) & 0x0000ffff;
+    x = b + c;
+
+    return x;
 }
 
 /*
@@ -393,7 +459,8 @@ int countLeadingZero(int x)
  */
 int copyLSB(int x)
 {
-    return 42;
+    x = (x << 31) >> 31;
+    return x;
 }
 
 /*
@@ -405,7 +472,8 @@ int copyLSB(int x)
  */
 int distinctNegation(int x)
 {
-    return 42;
+    x = x << 1;
+    return !!x;
 }
 
 /*
@@ -418,7 +486,11 @@ int distinctNegation(int x)
  */
 int dividePower2(int x, int n)
 {
-    return 42;
+    int neg = x >> 31;
+    int mask = ~(0xffffffff << n);
+    int divisible = !(x & mask);
+
+    return (x >> n) + (neg & ~divisible & 1);
 }
 
 /*
@@ -429,7 +501,7 @@ int dividePower2(int x, int n)
  */
 int evenBits(void)
 {
-    return 42;
+    return 0x55555555;
 }
 
 /*
@@ -445,7 +517,11 @@ int evenBits(void)
  */
 int ezThreeFourths(int x)
 {
-    return 42;
+    int x3 = x + x + x;
+    int neg = x3 >> 31;
+    int divisible = !(x3 & 0x00000003);
+
+    return (x3 >> 2) + (neg & ~divisible & 1);
 }
 
 /*
@@ -459,7 +535,9 @@ int ezThreeFourths(int x)
  */
 int fitsBits(int x, int n)
 {
-    return 42;
+    int high_order_bit = 33 + ~n;
+    int x_n_bits = (x << high_order_bit) >> high_order_bit;
+    return !(x ^ x_n_bits);
 }
 
 /*
@@ -472,7 +550,9 @@ int fitsBits(int x, int n)
  */
 int fitsShort(int x)
 {
-    return 42;
+    int high_order_bit = 16;
+    int x_n_bits = (x << high_order_bit) >> high_order_bit;
+    return !(x ^ x_n_bits);
 }
 
 /*
