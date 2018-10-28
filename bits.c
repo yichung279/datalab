@@ -665,7 +665,30 @@ unsigned floatAbsVal(unsigned uf)
  */
 int floatFloat2Int(unsigned uf)
 {
-    return 42;
+    unsigned mask_exp = 0x7f800000;
+    unsigned mask_frac = 0x007fffff;
+
+    unsigned sign = (int) uf >> 31;
+    int exp = ((uf & mask_exp) >> 23);
+    unsigned frac =
+        (uf & mask_frac) | 0x00800000;  // all denormalized are out of range
+
+    if (exp < 127)
+        return 0;
+    else if (exp >= 158)
+        return 0x80000000;
+
+
+    int shift = exp - 150;
+    unsigned Int;
+    if (shift >= 0)
+        Int = frac << shift;
+    else
+        Int = frac >> (-shift);
+
+    Int = (Int ^ sign) + !!sign;
+
+    return Int;
 }
 
 /*
@@ -695,7 +718,9 @@ unsigned floatInt2Float(int x)
  */
 int floatIsEqual(unsigned uf, unsigned ug)
 {
-    return 42;
+    if (uf == ug)
+        return ~(uf | 0x807fffff) || !(uf & 0x007fffff);  // not NaN
+    return (uf | ug) == 0x80000000;
 }
 
 /*
@@ -727,6 +752,7 @@ int floatIsLess(unsigned uf, unsigned ug)
  */
 unsigned floatNegate(unsigned uf)
 {
+    //    if (uf | 0x897fffff && (uf & 0x007fffff))
     return 42;
 }
 
@@ -821,7 +847,9 @@ unsigned floatUnsigned2Float(unsigned u)
  */
 int getByte(int x, int n)
 {
-    return 42;
+    int shift = (n << 3);
+    unsigned mask = 0xff << shift;
+    return (x & mask) >> shift;
 }
 
 /*
