@@ -861,7 +861,12 @@ int getByte(int x, int n)
  */
 int greatestBitPos(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x | (x >> 1);
+    return x ^ ((x >> 1) & 0x7fffffff);
 }
 
 /* howManyBits - return the minimum number of bits required to represent x in
