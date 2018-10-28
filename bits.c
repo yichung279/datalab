@@ -752,8 +752,7 @@ int floatIsLess(unsigned uf, unsigned ug)
  */
 unsigned floatNegate(unsigned uf)
 {
-    //    if (uf | 0x897fffff && (uf & 0x007fffff))
-    return 42;
+    return uf ^ ((~(uf | 0x807fffff) || !(uf & 0x007fffff)) << 31);
 }
 
 /*
