@@ -883,7 +883,54 @@ int greatestBitPos(int x)
  */
 int howManyBits(int x)
 {
-    return 0;
+    x = x ^ (x >> 31);
+
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x | (x >> 1);
+
+    int mask1 = 0x55;
+
+    mask1 |= (mask1 << 16);
+    mask1 |= (mask1 << 8);  // 0x55555555
+
+    int mask2 = 0x33;
+    mask2 |= (mask2 << 16);
+    mask2 |= (mask2 << 8);  // 0x333333333
+
+    int mask3 = 0x0f;
+    mask3 |= (mask3 << 16);
+    mask3 |= (mask3 << 8);  // 0x0f0f0f0f
+
+    int mask4 = 0xff;
+    mask4 |= (mask4 << 16);  // 0x00ff00ff
+
+    int mask5 = 0xff;
+    mask5 |= (mask5 << 8);  // 0x0000ffff
+
+    int b = x & mask1;
+    int c = (x >> 1) & mask1;
+    x = b + c;
+
+    b = x & mask2;
+    c = (x >> 2) & mask2;
+    x = b + c;
+
+    b = x & mask3;
+    c = (x >> 4) & mask3;
+    x = b + c;
+
+    b = x & mask4;
+    c = (x >> 8) & mask4;
+    x = b + c;
+
+    b = x & mask5;
+    c = (x >> 16) & mask5;
+    x = b + c + 1;
+
+    return x;
 }
 
 /*
