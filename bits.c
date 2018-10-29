@@ -702,7 +702,31 @@ int floatFloat2Int(unsigned uf)
  */
 unsigned floatInt2Float(int x)
 {
-    return 42;
+    int sign = x >> 31;
+    int frac = (x ^ sign) + (~sign + 1);
+
+    if (frac == 0)
+        return x;
+
+    int exp = 158;
+
+    while ((frac & 0x80000000) != 0x80000000) {
+        exp--;
+        frac <<= 1;
+    }
+
+    if (frac & 0x100)
+        frac = frac + 0x80;
+    else
+        frac = frac + 0x7f;
+
+    exp += !(frac & 0x80000000);
+    unsigned flt = 0;
+    flt = flt | ((frac >> 8) & 0x007fffff);
+    flt = flt | ((exp << 23) & 0x7f800000);
+    flt = flt | (sign & 0x80000000);
+
+    return flt;
 }
 
 /*
@@ -1191,7 +1215,15 @@ int isPositive(int x)
  */
 int isPower2(int x)
 {
-    return 42;
+    int mask = x | (x << 16);
+    mask = mask | (mask << 8);
+    mask = mask | (mask << 4);
+    mask = mask | (mask << 2);
+    mask = mask | (mask << 1);
+    mask = mask ^ (mask << 1);
+    int neg = x >> 31;
+
+    return !(x ^ mask) & !neg & !!x;
 }
 
 /*
@@ -1253,7 +1285,51 @@ int leastBitPos(int x)
  */
 int leftBitCount(int x)
 {
-    return 42;
+    x = x & (x >> 16);
+    x = x & (x >> 8);
+    x = x & (x >> 4);
+    x = x & (x >> 2);
+    x = x & (x >> 1);
+
+    int mask1 = 0x55;
+    mask1 |= (mask1 << 16);
+    mask1 |= (mask1 << 8);  // 0x55555555
+
+    int mask2 = 0x33;
+    mask2 |= (mask2 << 16);
+    mask2 |= (mask2 << 8);  // 0x333333333
+
+    int mask3 = 0x0f;
+    mask3 |= (mask3 << 16);
+    mask3 |= (mask3 << 8);  // 0x0f0f0f0f
+
+    int mask4 = 0xff;
+    mask4 |= (mask4 << 16);  // 0x00ff00ff
+
+    int mask5 = 0xff;
+    mask5 |= (mask5 << 8);  // 0x0000ffff
+
+    int b = x & mask1;
+    int c = (x >> 1) & mask1;
+    x = b + c;
+
+    b = x & mask2;
+    c = (x >> 2) & mask2;
+    x = b + c;
+
+    b = x & mask3;
+    c = (x >> 4) & mask3;
+    x = b + c;
+
+    b = x & mask4;
+    c = (x >> 8) & mask4;
+    x = b + c;
+
+    b = x & mask5;
+    c = (x >> 16) & mask5;
+    x = b + c;
+
+    return x;
 }
 
 /*
@@ -1266,7 +1342,13 @@ int leftBitCount(int x)
  */
 int logicalNeg(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x | (x >> 1);
+    x = ~x;
+    return x & 1;
 }
 
 /*
@@ -1279,7 +1361,9 @@ int logicalNeg(int x)
  */
 int logicalShift(int x, int n)
 {
-    return 42;
+    int shift = 32 + ~n;
+    int mask = ~(~0 << 1 << shift);
+    return (x >> n) & mask;
 }
 
 /*
@@ -1328,8 +1412,18 @@ int minusOne(void)
  */
 int multFiveEighths(int x)
 {
-    return 42;
+    int eight = x >> 3;
+    eight = (eight << 2) + eight;
+
+    int rem = x & 7;
+    rem = (rem << 2) + rem;
+
+    int neg = x >> 31;
+    int divisible = !(rem);
+
+    return (eight + (rem >> 3)) + (neg & ~divisible & 1);
 }
+
 
 /*
  * negate - return -x
@@ -1367,7 +1461,11 @@ int oddBits(void)
  */
 int remainderPower2(int x, int n)
 {
-    return 42;
+    int y = x >> 31;
+    int abs = (x ^ y) + (~y + 1);
+    int mask = ~(~0 << n);
+    int urem = abs & mask;
+    return (urem ^ y) + (~y + 1);
 }
 
 /*
@@ -1382,8 +1480,8 @@ int remainderPower2(int x, int n)
 int replaceByte(int x, int n, int c)
 {
     int mask = ~(0xff << (n << 3));
-    x |= mask;
-    x &= c << (n << 3);
+    x &= mask;
+    x |= c << (n << 3);
     return x;
 }
 
@@ -1468,7 +1566,8 @@ int satMul3(int x)
  */
 int sign(int x)
 {
-    return 42;
+    int sign = x >> 31;
+    return sign | !!x;
 }
 
 /*
@@ -1481,7 +1580,9 @@ int sign(int x)
  */
 int signMag2TwosComp(int x)
 {
-    return 42;
+    int sign = x >> 31;
+    int abs = x & 0x7fffffff;
+    return (abs ^ sign) + (~sign + 1);
 }
 
 /*
@@ -1492,7 +1593,7 @@ int signMag2TwosComp(int x)
  */
 int specialBits(void)
 {
-    return 42;
+    return 0xffca3fff;
 }
 
 /*
@@ -1588,7 +1689,9 @@ int trueThreeFourths(int x)
  */
 int twosComp2SignMag(int x)
 {
-    return 42;
+    int sign = x >> 31;
+    int abs = (x ^ sign) + (~sign + 1);
+    return abs | (sign << 31);
 }
 
 /*
