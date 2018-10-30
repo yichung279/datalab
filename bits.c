@@ -795,7 +795,13 @@ unsigned floatNegate(unsigned uf)
  */
 unsigned floatPower2(int x)
 {
-    return 42;
+    int exp = x + 127;
+    if (exp > 255)
+        return 0x7f800000;
+    else if (exp < 0)
+        return 0;
+    else
+        return exp << 23;
 }
 
 /*
@@ -857,7 +863,29 @@ unsigned floatScale64(unsigned uf)
  */
 unsigned floatUnsigned2Float(unsigned u)
 {
-    return 42;
+    int frac = u;
+
+    if (frac == 0)
+        return u;
+
+    int exp = 158;
+
+    while ((frac & 0x80000000) != 0x80000000) {
+        exp--;
+        frac <<= 1;
+    }
+
+    if (frac & 0x100)
+        frac = frac + 0x80;
+    else
+        frac = frac + 0x7f;
+
+    exp += !(frac & 0x80000000);
+    unsigned flt = 0;
+    flt = flt | ((frac >> 8) & 0x007fffff);
+    flt = flt | ((exp << 23) & 0x7f800000);
+
+    return flt;
 }
 
 /*
@@ -1071,10 +1099,11 @@ int isGreater(int x, int y)
     diff |= diff >> 8;
     diff |= diff >> 16;
 
-    diff &= ~(diff >> 1) | 0x80000000;
-    diff &= (x ^ 0x80000000) & (y ^ 0x7fffffff);
-
-    return !!diff;
+    // awre of sign bit
+    int mask = ((diff >> 1) ^ diff) & ~(1 << 31);
+    int greater = !!(x & mask);
+    int alien = diff >> 31;
+    return (~alien & greater) | (alien & !(x >> 31));
 }
 
 /*
@@ -1086,7 +1115,18 @@ int isGreater(int x, int y)
  */
 int isLess(int x, int y)
 {
-    return 42;
+    int diff = x ^ y;
+    diff |= diff >> 1;
+    diff |= diff >> 2;
+    diff |= diff >> 4;
+    diff |= diff >> 8;
+    diff |= diff >> 16;
+
+    // awre of sign bit
+    int mask = ((diff >> 1) ^ diff) & ~(1 << 31);
+    int less = !!(y & mask);
+    int alien = diff >> 31;
+    return (~alien & less) | (alien & !(y >> 31));
 }
 
 /*
@@ -1374,7 +1414,8 @@ int logicalShift(int x, int n)
  */
 int maximumOfTwo(int x, int y)
 {
-    return 42;
+    int y_big = (x + ~y + 1) >> 31;
+    return (y_big & y) | (~y_big & x);
 }
 
 /*
