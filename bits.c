@@ -1431,8 +1431,8 @@ int logicalShift(int x, int n)
 int maximumOfTwo(int x, int y)
 {
     int delta = x - y;
-    int neg = (delta >> 31) & 0x1;
-    int max = x - neg * delta;
+    int neg = delta >> 31;
+    int max = (~neg & x) | (neg & y);
     // consider overflow, it only happen when alien
     int alien = (x ^ y) >> 31;
     int x_pos = ~(x >> 31);
@@ -1445,15 +1445,15 @@ int maximumOfTwo(int x, int y)
  *   Max ops: 20
  *   Rating: 4
  */
-int minimumOfTwo(int y, int x)
+int minimumOfTwo(int x, int y)
 {
     int delta = x - y;
-    int neg = (delta >> 31) & 0x1;
-    int max = x - neg * delta;
+    int neg = delta >> 31;
+    int min = (neg & x) | (~neg & y);
     // consider overflow, it only happen when alien
     int alien = (x ^ y) >> 31;
     int x_pos = ~(x >> 31);
-    return (~alien & max) | (alien & x_pos & x) | (alien & ~x_pos & y);
+    return (~alien & min) | (alien & x_pos & y) | (alien & ~x_pos & x);
 }
 
 /*
