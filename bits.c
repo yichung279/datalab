@@ -1611,7 +1611,14 @@ int rotateRight(int x, int n)
  */
 int satAdd(int x, int y)
 {
-    return 42;
+    int sum = x + y;
+    int signX = x >> 31;
+    int signY = y >> 31;
+    int signSum = sum >> 31;
+    int overflow = ~signX & ~signY & signSum;
+    int underflow = signX & signY & ~signSum;
+    return (overflow & ~(1 << 31)) | (underflow & (1 << 31)) |
+           (~overflow & ~underflow & sum);
 }
 
 /*
@@ -1625,7 +1632,13 @@ int satAdd(int x, int y)
  */
 int satMul2(int x)
 {
-    return 42;
+    int mul = x << 1;
+    int signX = x >> 31;
+    int signMul = mul >> 31;
+    int overflow = ~signX & signMul;
+    int underflow = signX & ~signMul;
+    return (overflow & ~(1 << 31)) | (underflow & (1 << 31)) |
+           (~overflow & ~underflow & mul);
 }
 
 /*
@@ -1641,7 +1654,18 @@ int satMul2(int x)
  */
 int satMul3(int x)
 {
-    return 42;
+    int mul = x << 1;
+    int signX = x >> 31;
+    int signMul = mul >> 31;
+    int overflow = ~signX & signMul;
+    int underflow = signX & ~signMul;
+
+    mul += x;
+    signMul = mul >> 31;
+    overflow |= ~signX & signMul;
+    underflow |= signX & ~signMul;
+    return (overflow & ~(1 << 31)) | (underflow & (1 << 31)) |
+           (~overflow & ~underflow & mul);
 }
 
 /*
@@ -1654,8 +1678,8 @@ int satMul3(int x)
  */
 int sign(int x)
 {
-    int sign = x >> 31;
-    return sign | !!x;
+    int neg = x >> 31;
+    return neg | (!neg & !!x & 1);
 }
 
 /*
@@ -1694,7 +1718,11 @@ int specialBits(void)
  */
 int subtractionOK(int x, int y)
 {
-    return 42;
+    int sum = x - y;
+    int signX = x >> 31;
+    int signY = y >> 31;
+    int signSum = sum >> 31;
+    return (signX | !signY | !signSum) & ((!signX) | signY | signSum) & 1;
 }
 
 /*
@@ -1748,7 +1776,18 @@ int tmin(void)
  */
 int trueFiveEighths(int x)
 {
-    return 42;
+    int eight = x >> 3;
+    eight = (eight << 2) + eight;
+
+    int rem = x & 7;
+    rem = (rem << 2) + rem;
+
+    int fiveEighths = eight + (rem >> 3);
+
+    int neg = fiveEighths >> 31;
+    int divisible = !(rem);
+
+    return fiveEighths + (neg & ~divisible & 1);
 }
 
 /*
@@ -1763,7 +1802,18 @@ int trueFiveEighths(int x)
  */
 int trueThreeFourths(int x)
 {
-    return 42;
+    int four = x >> 2;
+    four = (four << 1) + four;
+
+    int rem = x & 3;
+    rem = (rem << 1) + rem;
+
+    int threeFourths = four + (rem >> 2);
+
+    int neg = threeFourths >> 31;
+    int divisible = !(rem);
+
+    return threeFourths + (neg & ~divisible & 1);
 }
 
 /*
