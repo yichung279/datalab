@@ -1563,20 +1563,40 @@ int replaceByte(int x, int n, int c)
  */
 int rotateLeft(int x, int n)
 {
-    return 42;
+    int shift = 32 + ~n;
+    // ex: 00000001
+    int mask = ~1 << shift;
+    // ex: efffffff
+    int mask_rotated = ~((1 << 31) >> shift);
+
+    int result = (x << n);
+    // aware of sign extension
+    int insert = (x & mask) >> (shift + 1);
+    return result | (insert & mask_rotated);
 }
 
 /*
  * rotateRight - Rotate x to the right by n
  *               Can assume that 0 <= n <= 31
- *   Examples: rotateRight(0x87654321, 4) = 0x76543218
+ *   Examples: rotateRight(0x87654321, 4) = 0x18765432
  *   Legal ops: ~ & ^ | + << >> !
  *   Max ops: 25
  *   Rating: 3
  */
 int rotateRight(int x, int n)
 {
-    return 42;
+    // ex: 00000001
+    int mask = ~(~0 << n);
+    int shift = 33 + ~n;
+    int shift1 = !!shift;
+    int shift2 = shift + (~shift1 + 1);
+    // ex: efffffff
+    int mask_rotated = ~(~0 << shift1 << shift2);
+
+    // aware of sign extension
+    int result = (x >> n);
+    int insert = (x & mask) << shift;
+    return insert | (result & mask_rotated);
 }
 
 /*
