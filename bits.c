@@ -1068,7 +1068,12 @@ int intLog2(int x)
  */
 int isAsciiDigit(int x)
 {
-    return 42;
+    // x == 0x3?
+    int diff = 0x3 ^ (x >> 4);
+
+    // less then 9
+    int ls9 = (!(x & 0x8) | !(x & 0x4)) & (!(x & 0x8) | !(x & 0x2));
+    return (!diff) & ls9;
 }
 
 /*
@@ -1138,7 +1143,18 @@ int isLess(int x, int y)
  */
 int isLessOrEqual(int x, int y)
 {
-    return 42;
+    int diff = x ^ y;
+    diff |= diff >> 1;
+    diff |= diff >> 2;
+    diff |= diff >> 4;
+    diff |= diff >> 8;
+    diff |= diff >> 16;
+
+    // awre of sign bit
+    int mask = ((diff >> 1) ^ diff) & ~(1 << 31);
+    int greater = !!(x & mask);
+    int alien = diff >> 31;
+    return !((~alien & greater) | (alien & !(x >> 31)));
 }
 
 /*
