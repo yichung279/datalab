@@ -760,7 +760,36 @@ int floatIsEqual(unsigned uf, unsigned ug)
  */
 int floatIsLess(unsigned uf, unsigned ug)
 {
-    return 42;
+    unsigned uf_abs = uf & 0x7fffffff, ug_abs = ug & 0x7fffffff;
+    unsigned uf_sign = uf >> 31, ug_sign = ug >> 31;
+    unsigned uf_exp = uf & 0x7f800000, ug_exp = ug & 0x7f800000;
+    unsigned uf_frac = uf & 0x007fffff, ug_frac = ug & 0x007fffff;
+
+    // either NaN
+    if (uf_abs > 0x7F800000 || ug_abs > 0x7F800000)
+        return 0;
+    // both zero
+    if (!uf_abs && !ug_abs)
+        return 0;
+
+    if (uf_sign < ug_sign)
+        return 0;
+    else if (uf_sign > ug_sign)
+        return 1;
+
+    if (uf_sign == 0) {
+        if (uf_exp < ug_exp)
+            return 1;
+        else if (uf_exp > ug_exp)
+            return 0;
+        return uf_frac < ug_frac;
+    } else {
+        if (uf_exp < ug_exp)
+            return 0;
+        else if (uf_exp > ug_exp)
+            return 1;
+        return uf_frac > ug_frac;
+    }
 }
 
 /*
@@ -817,7 +846,21 @@ unsigned floatPower2(int x)
  */
 unsigned floatScale1d2(unsigned uf)
 {
-    return 42;
+    unsigned uf_abs = uf & 0x7fffffff;
+    unsigned sign = uf & 0x80000000;
+    // Nan and inf
+    if (uf_abs >= 0x7f800000)
+        return uf;
+
+
+    if (uf_abs <= 0xffffff) {
+        // rounding
+        if (uf_abs & 0x2)
+            uf_abs += 1;
+        return sign | (uf_abs >> 1);
+    }
+    uf_abs -= 0x800000;
+    return sign | uf_abs;
 }
 
 /*
@@ -833,7 +876,18 @@ unsigned floatScale1d2(unsigned uf)
  */
 unsigned floatScale2(unsigned uf)
 {
-    return 42;
+    unsigned uf_abs = uf & 0x7fffffff;
+    unsigned sign = uf & 0x80000000;
+    // Nan and inf
+    if (uf_abs >= 0x7f800000)
+        return uf;
+
+
+    if (uf_abs < 0x800000)
+        return sign | (uf_abs << 1);
+
+    uf_abs += 0x800000;
+    return sign | uf_abs;
 }
 
 /*
@@ -849,7 +903,46 @@ unsigned floatScale2(unsigned uf)
  */
 unsigned floatScale64(unsigned uf)
 {
-    return 42;
+    int exp = (uf & 0x7F800000) >> 23;
+    int frac = uf & 0x007fffff;
+    int sign = uf & 0x80000000;
+    // special
+    if (exp == 255)
+        return uf;
+    // denormalized
+
+    if (exp == 0) {
+        // if (frac == 0)
+        //    return 0 | sign;
+        exp += 6;
+        while (exp > 0) {
+            exp -= 1;
+            frac <<= 1;
+            if (frac & 0x800000) {
+                exp += 1;
+                // frac <<= 1;
+                break;
+            }
+        }
+        return (frac & 0x007fffff) | (exp << 23) | sign;
+
+        /*
+        if (frac > 0x007E0000)
+          return (uf << 6) | sign;
+        int compensate = 22;
+        while (!(uf & (1 << compensate)))
+          compensate--;
+        uf <<= (23 - compensate);
+        return sign | (uf & 0x807FFFFF) | ((compensate - 16) << 23);
+        */
+    }
+
+    if (exp)
+        // normalized
+        exp += 6;
+    if (exp >= 255)
+        return 0x7F800000 | sign;
+    return frac | (exp << 23) | sign;
 }
 
 /*
@@ -1328,7 +1421,7 @@ int isZero(int x)
  */
 int leastBitPos(int x)
 {
-    return 42;
+    return (~x + 1) & x;
 }
 
 /*
