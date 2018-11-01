@@ -912,29 +912,16 @@ unsigned floatScale64(unsigned uf)
     // denormalized
 
     if (exp == 0) {
-        // if (frac == 0)
-        //    return 0 | sign;
         exp += 6;
         while (exp > 0) {
             exp -= 1;
             frac <<= 1;
             if (frac & 0x800000) {
                 exp += 1;
-                // frac <<= 1;
                 break;
             }
         }
         return (frac & 0x007fffff) | (exp << 23) | sign;
-
-        /*
-        if (frac > 0x007E0000)
-          return (uf << 6) | sign;
-        int compensate = 22;
-        while (!(uf & (1 << compensate)))
-          compensate--;
-        uf <<= (23 - compensate);
-        return sign | (uf & 0x807FFFFF) | ((compensate - 16) << 23);
-        */
     }
 
     if (exp)
